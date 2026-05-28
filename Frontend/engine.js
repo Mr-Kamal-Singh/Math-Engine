@@ -3,14 +3,32 @@
 // ==========================================
 const API_BASE = 'http://localhost:8080/api/v1';
 let mathChartInstance = null;
-const MAX_HISTORY_ITEMS = 50; // Our architectural safety valve
+const MAX_HISTORY_ITEMS = 50;
 
-// Toggle Sidebar View
+// ==========================================
+// 🚀 OPTIMIZATION: THE CENTRAL API WRAPPER
+// ==========================================
+// Every network request routes through this single function.
+// It automatically attaches your API key and handles the JSON.
+async function apiPost(endpoint, payload) {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': config.API_KEY // The VIP pass is applied automatically!
+        },
+        body: JSON.stringify(payload)
+    });
+    return response; // Return the raw response so callers can handle specific errors
+}
+
+// ==========================================
+// UI / STATE FUNCTIONS
+// ==========================================
 function toggleHistory() {
     const sidebar = document.getElementById('historySidebar');
     sidebar.classList.toggle('active');
     
-    // If opening, refresh the list view from localStorage
     if (sidebar.classList.contains('active')) {
         renderHistory();
     }
@@ -22,15 +40,15 @@ function toggleHistory() {
 function translateLaTeXToEngine(latex) {
     let engineStr = latex;
 
-    // A. Pre-processing
-    engineStr = engineStr.replace(/\\[;,:\s!]/g, ''); 
-    engineStr = engineStr.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')'); 
-    engineStr = engineStr.replace(/\\displaystyle/g, ''); 
-    engineStr = engineStr.replace(/\\textstyle/g, ''); 
-    engineStr = engineStr.replace(/\\limits/g, ''); 
-    engineStr = engineStr.replace(/−/g, '-'); // NEW: Force Unicode minus to standard hyphen
+    // A. Pre-processing (Chained for slight speed boost)
+    engineStr = engineStr.replace(/\\[;,:\s!]/g, '')
+                         .replace(/\\left\(/g, '(').replace(/\\right\)/g, ')')
+                         .replace(/\\displaystyle/g, '')
+                         .replace(/\\textstyle/g, '')
+                         .replace(/\\limits/g, '')
+                         .replace(/−/g, '-'); 
 
-    // Upgraded 'dx' normalizer (Tolerates spaces and \text{} tags)
+    // Upgraded 'dx' normalizer 
     engineStr = engineStr.replace(/\\(mathrm|operatorname|text|differentialD|mathit)?\s*\{?d\}?\s*([a-zA-Z])/g, 'd$2');
 
     // B. AUTO-REARRANGE EQUATIONS
@@ -42,7 +60,6 @@ function translateLaTeXToEngine(latex) {
     }
 
     // C. Translate Integrals & Math
-    // 1. Definite & Improper Integrals (e.g., bounds from 0 to \infty)
     const intRegex = /\\int\s*_\s*(\{([^}]+)\}|([a-zA-Z0-9.\-]+))\s*\^\s*(\{([^}]+)\}|([a-zA-Z0-9.\-]+))\s*(.*?)\s*d([a-zA-Z])/g;
     engineStr = engineStr.replace(intRegex, (match, p1, braceLower, singleLower, p4, braceUpper, singleUpper, expr, varName) => {
         const lower = braceLower || singleLower;
@@ -50,27 +67,24 @@ function translateLaTeXToEngine(latex) {
         return `integral(${expr}, ${varName}, ${lower}, ${upper})`;
     });
 
-    // 2. Indefinite Integrals (No bounds)
     const indefRegex = /\\int\s*(.*?)\s*d([a-zA-Z])/g;
     engineStr = engineStr.replace(indefRegex, 'indefinite($1, $2)');
 
-    // 3. Standard Fractions & Math
     const fracRegex = /\\frac\{([^}]+)\}\{([^}]+)\}/g;
     while(fracRegex.test(engineStr)) engineStr = engineStr.replace(fracRegex, '($1)/($2)');
-    engineStr = engineStr.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)');
-    engineStr = engineStr.replace(/\\(sin|cos|tan|log|ln)/g, '$1');
-    engineStr = engineStr.replace(/\^\{([^}]+)\}/g, '^($1)');
+    
+    engineStr = engineStr.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)')
+                         .replace(/\\(sin|cos|tan|log|ln)/g, '$1')
+                         .replace(/\^\{([^}]+)\}/g, '^($1)');
 
     // D. Virtual Keyboard Operators
-    engineStr = engineStr.replace(/\\times/g, '*'); 
-    engineStr = engineStr.replace(/\\cdot/g, '*');   
-    engineStr = engineStr.replace(/\\div/g, '/');    
-    engineStr = engineStr.replace(/\\ast/g, '*');    
-    engineStr = engineStr.replace(/\\pi/g, '3.14159265359'); 
-    engineStr = engineStr.replace(/\\exponentialE/g, '2.71828182846'); 
-    
-    // Rescue Infinity before the Nuclear Option destroys it
-    engineStr = engineStr.replace(/\\infty/g, 'Infinity'); 
+    engineStr = engineStr.replace(/\\times/g, '*')
+                         .replace(/\\cdot/g, '*')
+                         .replace(/\\div/g, '/')
+                         .replace(/\\ast/g, '*')
+                         .replace(/\\pi/g, '3.14159265359')
+                         .replace(/\\exponentialE/g, '2.71828182846')
+                         .replace(/\\infty/g, 'Infinity'); 
 
     // E. The Nuclear Option (Strip unrecognized tags)
     engineStr = engineStr.replace(/\\[a-zA-Z]+/g, '').replace(/\\/g, '');
@@ -92,7 +106,6 @@ async function executeEngine() {
     const translatedEquation = translateLaTeXToEngine(rawLaTeX);
     console.log("Translated String:", translatedEquation);
 
-    // SMARTER INTENT ENGINE: Catch Quadratics AND All Calculus
     const isEquation = rawLaTeX.includes('=');
     const hasX = rawLaTeX.includes('x');
     const isCubicOrHigher = rawLaTeX.includes('^3') || rawLaTeX.includes('^4');
@@ -107,7 +120,7 @@ async function executeEngine() {
     } else {
         console.log("⚙️ ROUTING: Detected Standard Expression/Calculus.");
         let variables = {};
-        const varInput = document.getElementById('variables').value.trim();
+        const varInput = document.getElementById('variables') ? document.getElementById('variables').value.trim() : "";
         if (varInput) variables = JSON.parse(varInput);
 
         await calculateMath(translatedEquation, variables);
@@ -121,12 +134,9 @@ async function executeEngine() {
 async function solveSmartQuadratic(equationStr) {
     const errorBox = document.getElementById('errorBox');
     
+    // Uses the new wrapper
     async function evaluateAt(xValue) {
-        const res = await fetch(`${API_BASE}/calculate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ equation: equationStr, variables: { "x": xValue } })
-        });
+        const res = await apiPost('/calculate', { equation: equationStr, variables: { "x": xValue } });
         const data = await res.json();
         return parseFloat(data.result);
     }
@@ -138,11 +148,8 @@ async function solveSmartQuadratic(equationStr) {
         const a = (f1 + fMinus1 - (2 * c)) / 2;
         const b = (f1 - fMinus1) / 2;
 
-        const response = await fetch(`${API_BASE}/quadratic`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ a: a, b: b, c: c })
-        });
+        // Uses the new wrapper
+        const response = await apiPost('/quadratic', { a: a, b: b, c: c });
         const data = await response.json();
 
         if (response.ok) {
@@ -153,7 +160,6 @@ async function solveSmartQuadratic(equationStr) {
             mathDisplay.innerText = '$$' + data.latexSteps + '$$';
             MathJax.typesetPromise([mathDisplay]);
             
-            // === HOOK THE HISTORY SAVER HERE ===
             const mf = document.getElementById('equation');
             saveToHistory(mf.getValue('latex'), `\\Delta = ${data.discriminant}`);
 
@@ -172,11 +178,10 @@ async function solveSmartQuadratic(equationStr) {
 async function calculateMath(equation, variables) {
     const errorBox = document.getElementById('errorBox');
     try {
-        const response = await fetch(`${API_BASE}/calculate`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ equation: equation, variables: variables })
-        });
+        // Uses the new wrapper
+        const response = await apiPost('/calculate', { equation: equation, variables: variables });
         const data = await response.json();
+        
         if (response.ok) {
             document.getElementById('metricTitle').innerText = "COMPUTE LATENCY";
             document.getElementById('metrics').innerText = `${data.computeTimeMs} ms`;
@@ -185,7 +190,6 @@ async function calculateMath(equation, variables) {
             mathDisplay.innerText = '$$' + data.latexEquation + ' = ' + data.result + '$$';
             MathJax.typesetPromise([mathDisplay]);
 
-            // === HOOK THE HISTORY SAVER HERE ===
             const mf = document.getElementById('equation');
             saveToHistory(mf.getValue('latex'), data.result);
         } else {
@@ -198,10 +202,8 @@ async function calculateMath(equation, variables) {
 
 async function generateGraph(equation) {
     try {
-        const response = await fetch(`${API_BASE}/graph`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ equation: equation, variable: "x", min: -10.0, max: 10.0, points: 100 })
-        });
+        // Uses the new wrapper
+        const response = await apiPost('/graph', { equation: equation, variable: "x", min: -10.0, max: 10.0, points: 100 });
         if (response.ok) {
             const data = await response.json();
             if (mathChartInstance) mathChartInstance.destroy();
@@ -247,7 +249,6 @@ async function solveCalculusMath(translatedEquation) {
     let payload = {};
     let displayLatex = "";
 
-    // 1. Determine if Definite or Indefinite
     const defMatch = translatedEquation.match(/integral\((.*?),\s*([a-zA-Z]),\s*(.*?),\s*(.*?)\)/);
     const indefMatch = translatedEquation.match(/indefinite\((.*?),\s*([a-zA-Z])\)/);
 
@@ -262,21 +263,14 @@ async function solveCalculusMath(translatedEquation) {
         return;
     }
 
-    // ==========================================
-    // 1.5 SYMBOLIC SANITIZER
-    // ==========================================
-    payload.equation = payload.equation.replace(/2\.71828182846/g, 'E');
-    payload.equation = payload.equation.replace(/3\.14159265359/g, 'Pi');
-    payload.equation = payload.equation.replace(/(?:E|e)\^\((.*?)\)/g, 'Exp($1)');
-    payload.equation = payload.equation.replace(/(?:E|e)\^([a-zA-Z0-9.\-]+)/g, 'Exp($1)');
+    payload.equation = payload.equation.replace(/2\.71828182846/g, 'E')
+                                       .replace(/3\.14159265359/g, 'Pi')
+                                       .replace(/(?:E|e)\^\((.*?)\)/g, 'Exp($1)')
+                                       .replace(/(?:E|e)\^([a-zA-Z0-9.\-]+)/g, 'Exp($1)');
 
     try {
-        const response = await fetch(`${API_BASE}/symbolic`, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
+        // Uses the new wrapper
+        const response = await apiPost('/symbolic', payload);
         const data = await response.json();
         
         if (response.ok) {
@@ -287,7 +281,6 @@ async function solveCalculusMath(translatedEquation) {
             mathDisplay.innerText = '$$' + displayLatex + ' = ' + data.latexEquation + '$$';
             MathJax.typesetPromise([mathDisplay]);
 
-            // === HOOK THE HISTORY SAVER HERE ===
             const rawLaTeX = document.getElementById('equation').getValue('latex');
             saveToHistory(rawLaTeX, data.latexEquation);
 
@@ -307,12 +300,9 @@ async function solveCalculusMath(translatedEquation) {
 // ==========================================
 // 6. CLIENT-SIDE LOCALSTORAGE HISTORY ENGINE
 // ==========================================
-
-// Save a successful calculation to the user's hard drive
 function saveToHistory(rawLatex, displayResult) {
     try {
         let history = JSON.parse(localStorage.getItem('mathEngineHistory')) || [];
-        
         const newRecord = {
             latex: rawLatex,
             result: displayResult,
@@ -320,29 +310,20 @@ function saveToHistory(rawLatex, displayResult) {
         };
         
         if (history.length > 0 && history[0].latex === rawLatex) return;
-        
         history.unshift(newRecord);
-        
-        if (history.length > MAX_HISTORY_ITEMS) {
-            history = history.slice(0, MAX_HISTORY_ITEMS);
-        }
-        
+        if (history.length > MAX_HISTORY_ITEMS) history = history.slice(0, MAX_HISTORY_ITEMS);
         localStorage.setItem('mathEngineHistory', JSON.stringify(history));
     } catch (e) {
         console.error("Storage Fault: Failed to write to localStorage", e);
     }
 }
 
-// Read the database and paint the clickable HTML cards
 function renderHistory() {
     const historyList = document.getElementById('historyList');
     const history = JSON.parse(localStorage.getItem('mathEngineHistory')) || [];
     
     if (history.length === 0) {
-        historyList.innerHTML = `
-            <div style="color: #86868b; font-size: 0.85rem; text-align: center; margin-top: 2rem;">
-                No calculations yet.
-            </div>`;
+        historyList.innerHTML = `<div style="color: #86868b; font-size: 0.85rem; text-align: center; margin-top: 2rem;">No calculations yet.</div>`;
         return;
     }
     
@@ -350,7 +331,7 @@ function renderHistory() {
         <div class="history-card" onclick="loadHistoryItem(${index})">
             <span class="history-time">${item.time}</span>
             <div class="history-math">
-                \$\$${item.latex} = ${item.result}\$\$
+                $$${item.latex} = ${item.result}$$
             </div>
         </div>
     `).join('');
@@ -360,13 +341,10 @@ function renderHistory() {
     }
 }
 
-// The State Restorer: Reloads a past calculation back into the main view
 async function loadHistoryItem(index) {
     const history = JSON.parse(localStorage.getItem('mathEngineHistory')) || [];
     const selectedItem = history[index];
-    
     if (!selectedItem) return;
-    
     const mf = document.getElementById('equation');
     if (mf) {
         mf.setValue(selectedItem.latex, { insertTo: 'replaceAll' });
