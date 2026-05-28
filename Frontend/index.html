@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Engine PRO</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/mathlive"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-family=%22serif%22 font-size=%2290%22 fill=%22white%22>T</text></svg>">
+
+    <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+
+    <aside id="historySidebar" class="history-sidebar">
+        <div class="history-header">
+            <h3>Session History</h3>
+            <button onclick="toggleHistory()" class="close-btn">✕</button>
+        </div>
+        <div id="historyList" class="history-list">
+            <div style="color: #86868b; font-size: 0.85rem; text-align: center; margin-top: 2rem;">
+                No calculations yet.
+            </div>
+        </div>
+    </aside>
+
+    <div class="brand-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 10px;">
+            <polyline points="4 7 4 4 20 4 20 7"></polyline>
+            <line x1="9" y1="20" x2="15" y2="20"></line>
+            <line x1="12" y1="4" x2="12" y2="20"></line>
+        </svg>
+        Math Engine <span class="badge">PRO</span>
+    </div>
+
+    <div class="app-container">
+        
+        <div class="glass-panel input-section">
+            <h2 class="panel-title">Command Center</h2>
+            
+            <div class="input-group">
+                <div class="flex-header">
+                    <label>Digital Notebook</label>
+                    <button class="history-toggle-btn" onclick="toggleHistory()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        History
+                    </button>
+                </div>
+                <math-field id="equation" virtual-keyboard-mode="manual">
+                    \int_{0}^{\infty} e^{-x} dx
+                </math-field>
+            </div>
+
+            <div class="input-group">
+                <label>Variables Context (JSON)</label>
+                <input type="text" id="variables" class="json-input" placeholder='e.g. {"x": 5}'>
+            </div>
+
+            <button class="primary-btn" onclick="executeEngine()">Initialize Computation</button>
+            <div id="errorBox" class="error-text"></div>
+        </div>
+
+        <div class="glass-panel output-section">
+            <h2 class="panel-title">Telemetry & Output</h2>
+            
+            <div class="output-group">
+                <label>LaTeX Rendering</label>
+                <div class="math-display-box">
+                    <span id="renderedMath">Awaiting Input...</span>
+                </div>
+            </div>
+
+            <div class="metrics-row">
+                <div class="metric-block">
+                    <span class="metric-label" id="metricTitle">COMPUTE LATENCY</span>
+                    <span class="metric-value" id="metrics">-</span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <label>Dynamic 2D Plot</label>
+                <canvas id="mathChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="engine.js"></script>
+</body>
+</html>
