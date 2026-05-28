@@ -5,7 +5,6 @@ import com.engine.core.ast.LaTeXPrintVisitor;
 import com.engine.core.ast.NumericalEvaluationVisitor;
 import com.engine.core.ast.Parser;
 import com.engine.core.lexer.Lexer;
-import com.engine.core.lexer.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
