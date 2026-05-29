@@ -22,17 +22,14 @@
 > **Deployment Note:** Update the `src` attributes below to reference the validated repository asset paths (e.g., `./assets/hero.png`).
 
 <div align="center">
-  <img src="<img width="1919" height="862" alt="image" src="https://github.com/user-attachments/assets/d54e8851-289e-42cd-bd5c-13790970ffc6" />
-" width="800"/>
+  <img src="https://github.com/user-attachments/assets/d54e8851-289e-42cd-bd5c-13790970ffc6" alt="Command Center Interface & Digital Notebook" width="800" />
   <p><i>Command Center Interface & Digital Notebook</i></p>
 </div>
 
 ### Sub-System Capabilities
 <div align="center">
-  <img src="<img width="1918" height="866" alt="image" src="https://github.com/user-attachments/assets/537ec88b-f749-4a45-909f-b7995f05c604" />
-" alt="Dynamic 2D Graphing" width="400" />
-  <img src="<D:\Math Engine Screenshots" />
-" alt="Symbolic Calculus Evaluation" width="400" />
+  <img src="https://github.com/user-attachments/assets/537ec88b-f749-4a45-909f-b7995f05c604" alt="Dynamic 2D Graphing" width="400" />
+  <img src="https://github.com/user-attachments/assets/1c05b4ac-1fea-4987-a7d3-e21ddf2920a8" alt="Symbolic Calculus Evaluation" width="400" />
 </div>
 
 ---
