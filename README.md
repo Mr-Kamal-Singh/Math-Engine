@@ -96,5 +96,9 @@ const API_BASE_URL = "http://localhost:8080/api/v1";
 
 3. Initialize index.html via VS Code Live Server.
 
+
+
+
 📜 Licensing & Usage
+
 Distributed under the MIT License. Reference LICENSE for comprehensive legal documentation.
