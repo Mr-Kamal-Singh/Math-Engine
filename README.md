@@ -28,7 +28,7 @@
 
 ### Sub-System Capabilities
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/537ec88b-f749-4a45-909f-b7995f05c604" alt="Dynamic 2D Graphing" width="400" />
+  <img src="https://github.com/user-attachments/assets/67872fc4-9ca8-4499-be8d-84780b3171d6" />
   <img src="https://github.com/user-attachments/assets/1c05b4ac-1fea-4987-a7d3-e21ddf2920a8" alt="Symbolic Calculus Evaluation" width="400" />
 </div>
 
