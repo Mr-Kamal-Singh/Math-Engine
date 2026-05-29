@@ -2,7 +2,7 @@
 // CONFIGURATION & STATE
 // ==========================================
 //const API_BASE = 'http://localhost:8080/api/v1';
-const API_BASE_URL = "https://my-math-engine-backend.onrender.com";
+const API_BASE_URL = "https://my-math-engine-backend.onrender.com/api/v1";
 let mathChartInstance = null;
 const MAX_HISTORY_ITEMS = 50;
 
@@ -11,6 +11,8 @@ const MAX_HISTORY_ITEMS = 50;
 // ==========================================
 // Every network request routes through this single function.
 // It automatically attaches your API key and handles the JSON.
+
+/*
 async function apiPost(endpoint, payload) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
@@ -21,6 +23,18 @@ async function apiPost(endpoint, payload) {
         body: JSON.stringify(payload)
     });
     return response; // Return the raw response so callers can handle specific errors
+}*/
+
+async function apiPost(endpoint, payload) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, { // <-- Updated variable name
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': config.API_KEY 
+        },
+        body: JSON.stringify(payload)
+    });
+    return response; 
 }
 
 // ==========================================
