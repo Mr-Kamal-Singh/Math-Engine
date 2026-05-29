@@ -89,8 +89,9 @@ function translateLaTeXToEngine(latex) {
     while(fracRegex.test(engineStr)) engineStr = engineStr.replace(fracRegex, '($1)/($2)');
     
     engineStr = engineStr.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)')
-                         .replace(/\\(sin|cos|tan|log|ln)/g, '$1')
-                         .replace(/\^\{([^}]+)\}/g, '^($1)');
+                         
+    engineStr = engineStr.replace(/\\(sin|cos|tan|log|ln)/g, '$1');
+    engineStr = engineStr.replace(/(sin|cos|tan|log|ln)\s*\(*\s*([a-zA-Z0-9.]+)\s*\)*/g, '$1($2)');
 
     // D. Virtual Keyboard Operators
     engineStr = engineStr.replace(/\\times/g, '*')
