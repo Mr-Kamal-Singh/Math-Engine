@@ -25,5 +25,3 @@ out/
 .vscode/
 .DS_Store
 Thumbs.db
-
-config.js
