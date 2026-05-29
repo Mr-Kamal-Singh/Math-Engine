@@ -31,7 +31,7 @@
 <div align="center">
   <img src="<img width="1918" height="866" alt="image" src="https://github.com/user-attachments/assets/537ec88b-f749-4a45-909f-b7995f05c604" />
 " alt="Dynamic 2D Graphing" width="400" />
-  <img src="<img width="1918" height="1015" alt="Math-Engine-1" src="https://github.com/user-attachments/assets/1f073581-13de-4299-929c-861fad816413" />
+  <img src="<D:\Math Engine Screenshots" />
 " alt="Symbolic Calculus Evaluation" width="400" />
 </div>
 
