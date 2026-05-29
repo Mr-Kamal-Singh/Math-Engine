@@ -19,8 +19,6 @@
 
 ## 📸 System Telemetry & Interface
 
-> **Deployment Note:** Update the `src` attributes below to reference the validated repository asset paths (e.g., `./assets/hero.png`).
-
 <div align="center">
   <img src="https://github.com/user-attachments/assets/d54e8851-289e-42cd-bd5c-13790970ffc6" alt="Command Center Interface & Digital Notebook" width="800" />
   <p><i>Command Center Interface & Digital Notebook</i></p>
